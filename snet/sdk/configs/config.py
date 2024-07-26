@@ -1,8 +1,8 @@
-from snet.sdk.account import *
-from snet.sdk.service import Service
+from snet.sdk.configs.account import *
+from snet.sdk.configs.service import Service
 
 from enum import Enum
-from typing import Dict, Union
+from typing import Union
 
 
 class BlockchainType(Enum):

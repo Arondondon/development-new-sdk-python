@@ -1,12 +1,12 @@
-from snet.sdk.config import Config, BlockchainType
-from snet.sdk.account import *
+from snet.sdk.configs.config import Config, BlockchainType
+from snet.sdk.configs.account import *
 from snet.sdk.contracts.agix_contract import AGIXContract
 from snet.sdk.contracts.mpe_contract import MPEContract
-from snet.sdk.service import Service
+from snet.sdk.configs.service import Service
 
 import web3
 import json
-from typing import Union, Optional
+from typing import Optional
 
 
 class SNETEngine:
@@ -41,3 +41,18 @@ class SNETEngine:
             return self.agix.balance_of(self._config.get_account(account_name).wallet_address)
         else:
             return self.agix.balance_of(wallet_address)
+
+    def get_allowance(self, owner_account_name: str, spender_account_name: str,
+                      owner_wallet_address: str = None, spender_wallet_address: str = None) -> Optional[int]:
+
+        if owner_wallet_address is None:
+            owner_wallet_address = self._config.get_account(owner_account_name).wallet_address
+        if spender_wallet_address is None:
+            spender_wallet_address = self._config.get_account(spender_account_name).wallet_address
+
+        return self.agix.allowance(owner_wallet_address, spender_wallet_address)
+
+    def transfer_agix(self, sender_account_name: str, recipient_account_name: str, amount: int) -> None:
+        self.agix.transfer(self._config.get_account(sender_account_name).wallet_address,
+                           self._config.get_account(sender_account_name).private_key,
+                           self._config.get_account(recipient_account_name).wallet_address, amount)
