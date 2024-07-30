@@ -1,3 +1,12 @@
+from enum import Enum
+
+from snet.sdk.utils import *
+
+
+class AccountType(Enum):
+    KEY = 1
+    MNEMONIC = 2
+    LEDGER = 3
 
 
 class Account:
@@ -6,14 +15,34 @@ class Account:
 
 
 class EthAccount(Account):
-    def __init__(self, name: str, acc_type: str, wallet_address: str, private_key: str = ''):
+    def __init__(self, name: str, acc_type: AccountType,
+                 private_key_or_mnemonic: str, index: int = None):
         self.name = name
         self.type = acc_type
-        self.wallet_address = wallet_address
-        self.private_key = private_key
 
-    def get_name(self) -> str:
-        return self.name
+        if index is not None:
+            self.index = index
+        else:
+            self.index = 0
+
+        if acc_type == AccountType.KEY:
+            self.address = get_address_from_private_key(private_key_or_mnemonic)
+            self.private_key = private_key_or_mnemonic
+        elif acc_type == AccountType.MNEMONIC:
+            self.mnemonic = private_key_or_mnemonic
+            self.address, self.private_key = get_address_and_key_from_mnemonic(
+                self.mnemonic, self.index
+            )
+            self.mnemonic = private_key_or_mnemonic
+
+        self.nonce = 0
+
+    def get_nonce(self, w3) -> int:
+        nonce = w3.eth.get_transaction_count(self.address)
+        if self.nonce >= nonce:
+            nonce = self.nonce + 1
+        self.nonce = nonce
+        return nonce
 
 
 class CardanoAccount(Account):

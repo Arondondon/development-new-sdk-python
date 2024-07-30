@@ -1,14 +1,14 @@
-from snet.sdk.contracts.contract import *
-from snet.sdk.contracts.agix_contract import AGIXContract
+from snet.sdk.contract.contract import *
+from snet.sdk.contract.agix_contract import AGIXContract
 
 
 class MPEContract(EthContract):
 
-    def __init__(self, w3, address, abi, agix: AGIXContract = None):
-        super().__init__(w3, address, abi)
+    def __init__(self, w3: web3.Web3, address: str = None, agix: AGIXContract = None):
+        super().__init__(w3, "MultiPartyEscrow", address)
         self.agix = agix
 
-    def balance(self, address: str) -> int: # read contract
+    def balance(self, address: str) -> int:
         return self.contract.functions.balances(address).call()
 
     def deposit(self, value: int):

@@ -28,7 +28,7 @@ class Config:
         self.agix_address: str = agix_address if agix_address else ''
 
     def add_account(self, account: Union[Account, CardanoAccount, EthAccount]) -> None:
-        self._accounts.setdefault(account.get_name(), account)
+        self._accounts.setdefault(account.name, account)
 
     def add_service(self, service: Service) -> None:
         self._services.setdefault(service.service_id, service)

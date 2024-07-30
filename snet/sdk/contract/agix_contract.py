@@ -1,9 +1,9 @@
-from snet.sdk.contracts.contract import EthContract
+from snet.sdk.contract.contract import *
 
 
 class AGIXContract(EthContract):
-    def __init__(self, w3, address, abi):
-        super().__init__(w3, address, abi)
+    def __init__(self, w3: web3.Web3, address: str = None):
+        super().__init__(w3, "SingularityNetToken", address)
 
     def balance_of(self, address: str) -> int:
         return self.contract.functions.balanceOf(address).call()
@@ -21,7 +21,7 @@ class AGIXContract(EthContract):
         transfer_func = self.contract.functions.transfer(recipient_addr, amount).build_transaction(
             {"chainId": chaid_id, "from": sender_addr, "nonce": nonce}
         )
-        signed_transaction = self.w3.eth.account.sign_transasction(transfer_func, private_key=private_key)
+        signed_transaction = self.w3.eth.account.sign_transaction(transfer_func, private_key=private_key)
 
         send_transaction = self.w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
         transaction_receipt = self.w3.eth.wait_for_transaction_receipt(send_transaction)
