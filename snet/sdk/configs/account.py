@@ -1,5 +1,6 @@
 from enum import Enum
 
+from snet.sdk.contract.transaction_handler import LedgerTransactionHandler
 from snet.sdk.utils import *
 
 
@@ -15,7 +16,7 @@ class Account:
 
 
 class EthAccount(Account):
-    def __init__(self, name: str, acc_type: AccountType,
+    def __init__(self, w3: web3.Web3, name: str, acc_type: AccountType,
                  private_key_or_mnemonic: str, index: int = None):
         self.name = name
         self.type = acc_type
@@ -34,6 +35,9 @@ class EthAccount(Account):
                 self.mnemonic, self.index
             )
             self.mnemonic = private_key_or_mnemonic
+        elif acc_type == AccountType.LEDGER:
+            transaction_handler = LedgerTransactionHandler(w3, self.index)
+            self.address = transaction_handler.get_address()
 
         self.nonce = 0
 

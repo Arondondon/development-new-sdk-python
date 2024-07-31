@@ -1,6 +1,9 @@
 import web3
 from snet.contracts import get_contract_object
 
+from snet.sdk.contract.transaction_handler import get_transaction_handler
+from snet.sdk.configs.account import EthAccount
+
 
 class Contract:
     pass
@@ -13,12 +16,12 @@ class EthContract(Contract):
             self.contract = get_contract_object(self.w3, contract_name)
         else:
             self.contract = get_contract_object(self.w3, contract_name, address)
+        self.address = self.contract.address
 
     def call(self, function_name, *positional_inputs, **named_inputs):
         return getattr(self.contract.functions, function_name)(*positional_inputs, **named_inputs).call()
 
-    def build_transaction(self, function_name, from_address, gas_price, *positional_inputs, **named_inputs):
-        nonce = self.w3.eth.get_transaction_count(from_address)
+    def _build_transaction(self, function_name, from_address, nonce, gas_price, *positional_inputs, **named_inputs):
         chain_id = self.w3.net.version
         return getattr(self.contract.functions, function_name)(*positional_inputs, **named_inputs).build_transaction({
             "from": from_address,
@@ -48,6 +51,21 @@ class EthContract(Contract):
             gas_price += gas_price * 1 / 10
         return int(gas_price)
 
-    def perform_function_transaction(self, ):  # TODO: implement pipeline
+    def perform_transaction(self, account: EthAccount, function_name, *positional_inputs, **named_inputs):
+        gas_price = self._get_gas_price()
+        nonce = account.get_nonce(self.w3)
+        transaction_handler = get_transaction_handler(account, self.w3)
+        address = transaction_handler.get_address()
+
+        transaction = self._build_transaction(function_name, address, nonce, gas_price,
+                                              *positional_inputs, **named_inputs)
+        receipt = transaction_handler.transact(transaction)
+
+        return receipt
+
+    def call_read_func(self):
+        pass
+
+    def call_write_func(self):
         pass
 

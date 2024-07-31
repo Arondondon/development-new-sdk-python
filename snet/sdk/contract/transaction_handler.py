@@ -19,6 +19,10 @@ BIP32_HARDEN = 0x80000000
 
 class TransactionHandler(abc.ABC):
     @abc.abstractmethod
+    def get_address(self):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def transact(self, transaction, out_f):
         raise NotImplementedError()
 
@@ -32,6 +36,9 @@ class KeyOrMnemonicTransactionHandler(TransactionHandler):
         self.w3 = w3
         self.private_key = normalize_private_key(private_key)
         self.address = address
+
+    def get_address(self):
+        return self.address
 
     def transact(self, transaction, out_f):
         raw_transaction = sign_transaction_with_private_key(
@@ -68,6 +75,9 @@ class LedgerTransactionHandler(TransactionHandler):
         offset = 1 + result[0]
         self.address = self.w3.to_checksum_address(bytes(result[offset + 1: offset + 1 + result[offset]])
                                                    .decode("utf-8"))
+
+    def get_address(self):
+        return self.address
 
     def transact(self, transaction, out_f):
         tx = UnsignedTransaction(
@@ -172,31 +182,6 @@ def parse_bip32_path(path):
         else:
             result = result + struct.pack(">I", BIP32_HARDEN | int(element[0]))
     return result
-
-
-def get_kws_for_identity_type(identity_type):
-    SECRET = True
-    PLAINTEXT = False
-
-    if identity_type == "rpc":
-        return [("network", PLAINTEXT)]
-    elif identity_type == "mnemonic":
-        return [("mnemonic", SECRET)]
-    elif identity_type == "key":
-        return [("private_key", SECRET)]
-    elif identity_type == "trezor":
-        return []
-    elif identity_type == "ledger":
-        return []
-    elif identity_type == "keystore":
-        return [("keystore_path", PLAINTEXT)]
-    else:
-        raise RuntimeError(
-            "unrecognized identity_type {}".format(identity_type))
-
-
-def get_identity_types():
-    return ["rpc", "mnemonic", "key", "trezor", "ledger", "keystore"]
 
 
 def sign_transaction_with_private_key(w3, private_key, transaction):

@@ -8,45 +8,54 @@ class MPEContract(EthContract):
         super().__init__(w3, "MultiPartyEscrow", address)
         self.agix = agix
 
-    def balance(self, address: str) -> int:
-        return self.contract.functions.balances(address).call()
+    def balance(self, account: EthAccount) -> int:
+        return self.contract.functions.balances(account.address).call()
 
-    def deposit(self, value: int):
-        pass
-
-    def withdraw(self, value: int):
-        pass
-
-    def transfer(self, recipient: str, value: int):
-        pass
-
-    def channels(self) -> list: # read contract
+    def channels(self, account: EthAccount) -> list:
         return self.contract.functions.channels().call()
 
-    def open_channel(self, signer: str, recipient: str, group_id: str, amount: int, expiration: int):
-        pass
+    def deposit(self, account: EthAccount, value: int):
+        already_approved = self.agix.allowance(account, self.address)
 
-    def deposit_and_open_channel(self, signer: str, recipient: str, group_id: str, amount: int, expiration: int):
-        pass
+        if already_approved < value:
+            self.agix.approve(account, self.address, value)
 
-    def channel_add_funds(self, channel_id: int, amount: int):
-        pass
+        return self.perform_transaction(account, "deposit", value)
 
-    def channel_claim(self, channel_id: int, actual_amount: int, planned_amount: int, actual_gas: int, planned_gas: int):
-        pass
+    def withdraw(self, account: EthAccount, value: int):
+        balance = self.balance(account)
+        if balance < value:
+            raise Exception("Insufficient funds on the MPE balance")
+        return self.perform_transaction(account, "withdraw", value)
 
-    def channel_claim_timeout(self, channel_id: int):
-        pass
+    def transfer(self, account: EthAccount, recipient: str, value: int):
+        return self.perform_transaction(account, "transfer", recipient, value)
 
-    def channel_extend(self, channel_id: int, new_expiration: int):
-        pass
+    def open_channel(self, account: EthAccount, signer: str, recipient: str,
+                     group_id: str, amount: int, expiration: int):
+        return self.perform_transaction(account, "openChannel", signer, recipient, group_id, amount, expiration)
 
-    def channel_extend_and_add_funds(self, channel_id: int, new_expiration: int, amount: int):
-        pass
+    def deposit_and_open_channel(self, account: EthAccount, signer: str, recipient: str,
+                                 group_id: str, amount: int, expiration: int):
+        return self.perform_transaction(account, "depositAndOpenChannel", signer, recipient,
+                                        group_id, amount, expiration)
 
+    def channel_add_funds(self, account: EthAccount, channel_id: int, amount: int):
+        return self.perform_transaction(account, "channelAddFunds", channel_id, amount)
 
+    def channel_extend(self, account: EthAccount, channel_id: int, new_expiration: int):
+        return self.perform_transaction(account, "channelExtend", channel_id, new_expiration)
 
+    def channel_extend_and_add_funds(self, account: EthAccount, channel_id: int, new_expiration: int, amount: int):
+        return self.perform_transaction(account, "channelExtendAndAddFunds", channel_id, new_expiration, amount)
 
+    def channel_claim(self, account: EthAccount, channel_id: int, actual_amount: int,
+                      planned_amount: int, actual_gas: int, planned_gas: int):
+        return self.perform_transaction(account, "channelClaim", channel_id, actual_amount,
+                                        planned_amount, actual_gas, planned_gas)
+
+    def channel_claim_timeout(self, account: EthAccount, channel_id: int):
+        return self.perform_transaction(account, "channelClaimTimeout", channel_id)
 
 
 

@@ -19,7 +19,7 @@ class SNETEngine:
 
     def create_account(self, name: str, acc_type: AccountType, private_key_or_mnemonic: str, index: int = None) -> None:
         if self._config.blockchain == BlockchainType.ETHEREUM:
-            self._config.add_account(EthAccount(name, acc_type, private_key_or_mnemonic, index))
+            self._config.add_account(EthAccount(self.w3, name, acc_type, private_key_or_mnemonic, index))
 
     def create_service(self, org_id: str, service_id: str, group_name: str) -> None:
         self._config.add_service(Service(org_id, service_id, group_name))
@@ -30,23 +30,14 @@ class SNETEngine:
         else:
             return self.mpe.balance(wallet_address)
 
-    def get_agix_balance(self, account_name: str, wallet_address: str = None) -> Optional[int]:
-        if wallet_address is None:
-            return self.agix.balance_of(self._config.get_account(account_name).address)
-        else:
-            return self.agix.balance_of(wallet_address)
+    def get_agix_balance(self, account_name: str) -> Optional[int]:
+        return self.agix.balance_of(self._config.get_account(account_name))
 
-    def get_allowance(self, owner_account_name: str, spender_account_name: str,
-                      owner_wallet_address: str = None, spender_wallet_address: str = None) -> Optional[int]:
-
-        if owner_wallet_address is None:
-            owner_wallet_address = self._config.get_account(owner_account_name).address
-        if spender_wallet_address is None:
-            spender_wallet_address = self._config.get_account(spender_account_name).address
-
-        return self.agix.allowance(owner_wallet_address, spender_wallet_address)
+    def get_allowance(self, owner_account_name: str, spender_addr: str) -> Optional[int]:
+        return self.agix.allowance(self._config.get_account(owner_account_name), spender_addr)
 
     def transfer_agix(self, sender_account_name: str, recipient_account_name: str, amount: int) -> None:
         self.agix.transfer(self._config.get_account(sender_account_name).address,
                            self._config.get_account(sender_account_name).private_key,
                            self._config.get_account(recipient_account_name).address, amount)
+

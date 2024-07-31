@@ -5,33 +5,24 @@ class AGIXContract(EthContract):
     def __init__(self, w3: web3.Web3, address: str = None):
         super().__init__(w3, "SingularityNetToken", address)
 
-    def balance_of(self, address: str) -> int:
-        return self.contract.functions.balanceOf(address).call()
+    def balance_of(self, account: EthAccount) -> int:
+        return self.contract.functions.balanceOf(account.address).call()
 
-    def allowance(self, owner: str, spender: str) -> int:
-        return self.contract.functions.allowance(owner, spender).call()
+    def allowance(self, account: EthAccount, spender: str) -> int:
+        return self.contract.functions.allowance(account.address, spender).call()
 
-    def approve(self, spender: str, amount: int):
-        pass
+    def approve(self, account: EthAccount, spender: str, amount: int):
+        return self.perform_transaction(account, "approve", spender, amount)
 
-    def transfer(self, sender_addr: str, private_key: str, recipient_addr: str, amount: int):
-        nonce = self.w3.eth.get_transaction_count(sender_addr)
-        chaid_id = self.w3.eth.chain_id
+    def transfer(self, account: EthAccount, recipient: str, amount: int):
+        return self.perform_transaction(account, "transfer", recipient, amount)
 
-        transfer_func = self.contract.functions.transfer(recipient_addr, amount).build_transaction(
-            {"chainId": chaid_id, "from": sender_addr, "nonce": nonce}
-        )
-        signed_transaction = self.w3.eth.account.sign_transaction(transfer_func, private_key=private_key)
+    def transfer_from(self, account: EthAccount, sender: str, recipient: str, amount: int):
+        return self.perform_transaction(account, "transferFrom", sender, recipient, amount)
 
-        send_transaction = self.w3.eth.send_raw_transaction(signed_transaction.rawTransaction)
-        transaction_receipt = self.w3.eth.wait_for_transaction_receipt(send_transaction)
-        return transaction_receipt
+    def increase_allowance(self, account: EthAccount, spender: str, added_value: int):
+        return self.perform_transaction(account, "increaseAllowance", spender, added_value)
 
-    def transfer_from(self, sender: str, recipient: str, amount: int):
-        pass
+    def decrease_allowance(self, account: EthAccount, spender: str, subtracted_value: int):
+        return self.perform_transaction(account, "decreaseAllowance", spender, subtracted_value)
 
-    def increase_allowance(self, spender: str, added_value: int):
-        pass
-
-    def decrease_allowance(self, spender: str, subtracted_value: int):
-        pass
