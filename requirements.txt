@@ -2,3 +2,6 @@ web3>=6.11.1
 rlp>=4.0.1
 ledgerblue>=0.1.54
 snet.contracts>=0.1.1
+base58>=2.1.1
+multihash>=0.1.1
+grpcio>=1.65.2

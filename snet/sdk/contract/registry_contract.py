@@ -22,4 +22,3 @@ class RegistryContract(EthContract):
 
     # TODO: implement write methods
 
-

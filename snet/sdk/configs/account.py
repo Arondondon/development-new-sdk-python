@@ -1,7 +1,8 @@
 from enum import Enum
+import abc
 
 from snet.sdk.contract.transaction_handler import LedgerTransactionHandler
-from snet.sdk.utils import *
+from snet.sdk.utils.utils import *
 
 
 class AccountType(Enum):
@@ -10,9 +11,10 @@ class AccountType(Enum):
     LEDGER = 3
 
 
-class Account:
+class Account(abc.ABC):
+    @abc.abstractmethod
     def get_name(self) -> str:
-        pass
+        raise NotImplementedError()
 
 
 class EthAccount(Account):
@@ -40,6 +42,9 @@ class EthAccount(Account):
             self.address = transaction_handler.get_address()
 
         self.nonce = 0
+
+    def get_name(self):
+        return self.name
 
     def get_nonce(self, w3) -> int:
         nonce = w3.eth.get_transaction_count(self.address)

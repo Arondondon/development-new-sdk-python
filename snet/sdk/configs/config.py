@@ -1,5 +1,5 @@
 from snet.sdk.configs.account import *
-from snet.sdk.configs.service import Service
+from snet.sdk.service import Service
 
 from enum import Enum
 from typing import Union
@@ -22,16 +22,12 @@ class Config:
         # self._accounts = Dict[str, Union[Account, CardanoAccount, EthAccount]]
         # self._services = Dict[str, Service]
         self._accounts = {}
-        self._services = {}
         self.mpe_address: str = mpe_address if mpe_address else ''
         self.registry_address: str = registry_address if registry_address else ''
         self.agix_address: str = agix_address if agix_address else ''
 
     def add_account(self, account: Union[Account, CardanoAccount, EthAccount]) -> None:
         self._accounts.setdefault(account.name, account)
-
-    def add_service(self, service: Service) -> None:
-        self._services.setdefault(service.service_id, service)
 
     def get_account(self, account_name: str) -> EthAccount:
         return self._accounts.get(account_name)
